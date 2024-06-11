@@ -1,6 +1,5 @@
 package com.example.livros.models;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -9,7 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "TB_LIVROS")
-public class LivroModel implements Serializable {
+public class BookModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

@@ -16,7 +16,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Publishing implements Serializable {
 
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Id @GeneratedValue
     private Long id_pub;
     private String company;
 }

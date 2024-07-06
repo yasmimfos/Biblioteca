@@ -23,7 +23,7 @@ public class PublishingService {
     public Object register(PublishingDto publishingDto){
         var verification = publishingRepository.findByCompany(publishingDto.company());
 
-        if(verification==null){
+        if(verification.isEmpty()){
             var publishing = new Publishing();
             BeanUtils.copyProperties(publishingDto, publishing);
             publishingRepository.save(publishing);

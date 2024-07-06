@@ -1,5 +1,6 @@
 package com.example.books.controller;
 
+import com.example.books.dtos.BookDtoSave;
 import com.example.books.dtos.BookRecordDto;
 import com.example.books.services.BookService;
 import jakarta.validation.Valid;
@@ -19,8 +20,8 @@ public class BookController {
     }
 
     @PostMapping("/books")
-    public ResponseEntity<Object> createBook(@RequestBody @Valid BookRecordDto bookRecordDto){
-        var book = bookService.register(bookRecordDto);
+    public ResponseEntity<Object> createBook(@RequestBody @Valid BookDtoSave bookDtoSave){
+        var book = bookService.register(bookDtoSave);
         return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
 
@@ -40,8 +41,8 @@ public class BookController {
     }
 
     @PutMapping("books/{id}")
-    public ResponseEntity<Object> updateBook(@PathVariable(value = "id") Long id, @RequestBody @Valid BookRecordDto bookRecordDto){
-        var book = bookService.update(id, bookRecordDto);
+    public ResponseEntity<Object> updateBook(@PathVariable(value = "id") Long id, @RequestBody @Valid BookDtoSave bookDtoSave){
+        var book = bookService.update(id, bookDtoSave);
         if (book.equals("Book not found")){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Author not found");
         }

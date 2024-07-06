@@ -1,6 +1,7 @@
 package com.example.books.controller;
 
 import com.example.books.dtos.AuthorDto;
+import com.example.books.dtos.AuthorDtoSave;
 import com.example.books.services.AuthorService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,8 @@ public class AuthorController {
     }
 
     @PostMapping("/author")
-    public ResponseEntity<Object> registerAuthor(@RequestBody @Valid AuthorDto authorDto){
-        var register = authorService.register(authorDto);
+    public ResponseEntity<Object> registerAuthor(@RequestBody @Valid AuthorDtoSave authorDtoSave){
+        var register = authorService.register(authorDtoSave);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(register);
     }
@@ -40,8 +41,8 @@ public class AuthorController {
     }
 
     @PutMapping("/author/{id}")
-    public ResponseEntity<Object> updateAuthor(@PathVariable(value = "id") Long id, @RequestBody @Valid AuthorDto authorDto){
-        var author = authorService.update(id, authorDto);
+    public ResponseEntity<Object> updateAuthor(@PathVariable(value = "id") Long id, @RequestBody @Valid AuthorDtoSave authorDtoSave){
+        var author = authorService.update(id, authorDtoSave);
         if (author.equals("Author not found")){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Author not found");
         }

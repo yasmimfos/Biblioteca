@@ -16,4 +16,13 @@ public class Author implements Serializable {
     private Long id_author;
     private String name;
     private Long publishingCompany;
+
+    public Author(String name, Long id) {
+        this.name = name;
+        this.publishingCompany = id;
+    }
+
+    public Author() {
+
+    }
 }

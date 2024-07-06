@@ -1,10 +1,11 @@
 package com.example.books.services;
 
 
-import com.example.books.dtos.BookRecordDto;
+import com.example.books.dtos.BookDtoSave;
+import com.example.books.models.Author;
 import com.example.books.models.Book;
+import com.example.books.repositories.AuthorRepository;
 import com.example.books.repositories.BookRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +15,26 @@ import java.util.Optional;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
 
     @Autowired
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, AuthorRepository authorRepository1) {
         this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository1;
     }
 
-    public Object register(BookRecordDto bookRecordDto){
-        var book = new Book();
-        BeanUtils.copyProperties(bookRecordDto, book);
+    public Object register(BookDtoSave bookDtoSave){
+        Optional<Author> author = authorRepository.findAuthorByName(bookDtoSave.author());
+        if (author.isEmpty()){
+            return "Author not found";
+        }
+
+        var book = new Book(bookDtoSave.title(),
+                            author.get().getId_author(),
+                            bookDtoSave.classificacao(),
+                            bookDtoSave.pages(),
+                            bookDtoSave.release(),
+                            bookDtoSave.genre());
         bookRepository.save(book);
         return book;
     }
@@ -40,14 +52,24 @@ public class BookService {
         return book;
     }
 
-    public Object update(Long id, BookRecordDto bookRecordDto){
+    public Object update(Long id, BookDtoSave bookDtoSave){
         Optional<Book> book = bookRepository.findById(id);
 
         if (book.isEmpty()){
             return "Book not found";
         }
-        var bookModel = book.get();
-        BeanUtils.copyProperties(bookRecordDto, bookModel);
+
+        Optional<Author> author = authorRepository.findAuthorByName(bookDtoSave.author());
+        if (author.isEmpty()){
+            return "Author not found";
+        }
+
+        var bookModel = new Book(bookDtoSave.title(),
+                author.get().getId_author(),
+                bookDtoSave.classificacao(),
+                bookDtoSave.pages(),
+                bookDtoSave.release(),
+                bookDtoSave.genre());
         bookRepository.save(bookModel);
         return bookModel;
     }

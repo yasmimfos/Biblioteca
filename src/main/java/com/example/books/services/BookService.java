@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,11 +22,13 @@ public class BookService {
     private final BookRepository bookRepository;
 
     private final AuthorService authorService;
+    private final PublishingService publishingService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorService authorService) {
+    public BookService(BookRepository bookRepository, AuthorService authorService, PublishingService publishingService) {
         this.bookRepository = bookRepository;
         this.authorService = authorService;
+        this.publishingService = publishingService;
     }
 
     public Book register(BookDto bookDto){
@@ -78,4 +81,30 @@ public class BookService {
         return "Deleted";
     }
 
+    public List<Book> getRelease() {
+        LocalDate today = LocalDate.now();
+        return bookRepository.findBookByReleaseAfter(today);
+    }
+
+    public List<Book> getByPublishing(String company) {
+        Long publishing = publishingService.ifCompanyExists(company);
+        return bookRepository.getByPublishing(publishing);
+    }
+
+    public List<Book> getByAuthor(String name) {
+        Author author = authorService.ifAuthorExists(name);
+        return bookRepository.getByAuthor(author.getId_author());
+    }
+
+    public Book getByTitle(String title) {
+        Optional<Book> book = bookRepository.findByTitle(title);
+        if (book.isEmpty()){
+            throw new NotFoundException("Book not found");
+        }
+        return book.get();
+    }
+
+    public List<Book> getByGenre(String genre) {
+        return bookRepository.getByGenre(genre);
+    }
 }

@@ -39,6 +39,36 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(book);
     }
 
+    @GetMapping("/books/releases-upcoming")
+    public ResponseEntity<List<Book>> GetReleases(){
+        List<Book> books = bookService.getRelease();
+        return ResponseEntity.status(HttpStatus.OK).body(books);
+    }
+
+    @GetMapping("/books/findCompany")
+    public ResponseEntity<List<Book>> GetByPublishing(@RequestParam String company){
+        List<Book> books = bookService.getByPublishing(company);
+        return ResponseEntity.status(HttpStatus.OK).body(books);
+    }
+
+    @GetMapping("/books/findAuthor")
+    public ResponseEntity<List<Book>> GetByAuthor(@RequestParam String author){
+        List<Book> books = bookService.getByAuthor(author);
+        return ResponseEntity.status(HttpStatus.OK).body(books);
+    }
+
+    @GetMapping("/books/findTitle")
+    public ResponseEntity<Book> GetByTitle(@RequestParam String title){
+        Book book = bookService.getByTitle(title);
+        return ResponseEntity.status(HttpStatus.OK).body(book);
+    }
+
+    @GetMapping("/books/findGenre")
+    public ResponseEntity<List<Book>> GetByGenre(@RequestParam String genre){
+        List<Book> books = bookService.getByGenre(genre);
+        return ResponseEntity.status(HttpStatus.OK).body(books);
+    }
+
     @PutMapping("books/{id}")
     public ResponseEntity<Book> updateBook(@PathVariable(value = "id") Long id, @RequestBody @Valid BookDto bookDto){
         var book = bookService.update(id, bookDto);

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table
@@ -22,7 +22,7 @@ public class Book implements Serializable {
     private Long publishing;
     private int ageRange;
     private int pages;
-    private Date release;
+    private LocalDate release;
     private String genre;
 
 

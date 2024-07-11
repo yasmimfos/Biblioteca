@@ -3,76 +3,78 @@ package com.example.books.services;
 
 import com.example.books.dtos.AuthorDto;
 import com.example.books.dtos.AuthorDtoSave;
+import com.example.books.exceptions.AlreadyExistsException;
+import com.example.books.exceptions.NotFoundException;
 import com.example.books.models.Author;
-import com.example.books.models.Publishing;
 import com.example.books.repositories.AuthorRepository;
-import com.example.books.repositories.PublishingRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
-    private final PublishingRepository publishingRepository;
+
+    private final PublishingService publishingService;
 
     @Autowired
-    public AuthorService(AuthorRepository authorRepository, PublishingRepository publishingRepository) {
+    public AuthorService(AuthorRepository authorRepository, PublishingService publishingService) {
         this.authorRepository = authorRepository;
-        this.publishingRepository = publishingRepository;
+        this.publishingService = publishingService;
     }
 
-    public Object getAll(){
+    public List<Author> getAll(){
         return authorRepository.findAll();
     }
 
-    public Object register(AuthorDtoSave authorDtoSave){
-        Optional<Publishing> company = publishingRepository.findByCompany(authorDtoSave.publishingCompany());
-        if (company.isEmpty()){
-            return "The company wasn't found";
+    public Author register(AuthorDto authorDto){
+        Optional<Author> verification = authorRepository.findAuthorByName(authorDto.name());
+        if(verification.isPresent()){
+            throw new AlreadyExistsException("The author has already been registered");
         }
 
-        var author = new Author(authorDtoSave.name(), company.get().getId_pub());
+        Long company = publishingService.ifCompanyExists(authorDto.publishingCompany());
+
+        var author = new Author(authorDto.name(), company);
         authorRepository.save(author);
         return author;
     }
 
-    public Object getById(Long id){
+    public Author getById(Long id){
         Optional<Author> author = authorRepository.findById(id);
 
         if (author.isEmpty()){
-            return "Author not found";
+            throw new NotFoundException("Author not found");
         }
+        return author.get();
+    }
+
+    public Author update(Long id, AuthorDto authorDto){
+        Author author = getById(id);
+        Long company = publishingService.ifCompanyExists(authorDto.publishingCompany());
+
+        AuthorDtoSave authorDtoSave = new AuthorDtoSave(authorDto.name(), company);
+        BeanUtils.copyProperties(authorDtoSave, author);
+        authorRepository.save(author);
         return author;
     }
 
-    public Object update(Long id, AuthorDtoSave authorDtoSave){
-        Optional<Author> author = authorRepository.findById(id);
-        if (author.isEmpty()){
-            return "Author not found";
-        }
-
-        Optional<Publishing> company = publishingRepository.findByCompany(authorDtoSave.publishingCompany());
-        if (company.isEmpty()){
-            return "The company wasn't found";
-        }
-
-        var authorModel = new Author(authorDtoSave.name(), company.get().getId_pub());
-        authorRepository.save(authorModel);
-        return authorModel;
-
+    public String delete(Long id){
+        Author author = getById(id);
+        authorRepository.delete(author);
+        return "deleted";
     }
 
-    public Object delete(Long id){
-        Optional<Author> author = authorRepository.findById(id);
-
+    public Author ifAuthorExists(String name){
+        Optional<Author> author = authorRepository.findAuthorByName(name);
         if (author.isEmpty()){
-            return "Author not found";
+            throw new NotFoundException("Author not found");
+        } else{
+            return author.get();
         }
-        authorRepository.delete(author.get());
-        return "deleted";
     }
 }

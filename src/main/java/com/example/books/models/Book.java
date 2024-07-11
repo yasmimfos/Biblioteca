@@ -1,5 +1,6 @@
 package com.example.books.models;
 
+import com.example.books.dtos.BookDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,23 +15,25 @@ import java.util.Date;
 public class Book implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id_book;
     private String title;
     private Long author;
-    private int classificacao;
+    private Long publishing;
+    private int ageRange;
     private int pages;
     private Date release;
     private String genre;
 
 
-    public Book(String title, Long idAuthor, int classificacao, int pages, Date release, String genre) {
-        this.title = title;
+    public Book(BookDto data, Long idAuthor, Long idPub) {
+        this.title = data.title();
         this.author = idAuthor;
-        this.classificacao = classificacao;
-        this.pages = pages;
-        this.release = release;
-        this.genre = genre;
+        this.publishing = idPub;
+        this.ageRange = data.ageRange();
+        this.pages = data.pages();
+        this.release = data.release();
+        this.genre = data.genre();
     }
 
     public Book() {

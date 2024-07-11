@@ -1,6 +1,8 @@
 package com.example.books.services;
 
 import com.example.books.dtos.PublishingDto;
+import com.example.books.exceptions.AlreadyExistsException;
+import com.example.books.exceptions.NotFoundException;
 import com.example.books.models.Publishing;
 import com.example.books.repositories.PublishingRepository;
 import org.springframework.beans.BeanUtils;
@@ -20,53 +22,49 @@ public class PublishingService {
         this.publishingRepository = publishingRepository;
     }
 
-    public Object register(PublishingDto publishingDto){
-        var verification = publishingRepository.findByCompany(publishingDto.company());
-
-        if(verification.isEmpty()){
-            var publishing = new Publishing();
-            BeanUtils.copyProperties(publishingDto, publishing);
-            publishingRepository.save(publishing);
-            return publishing;
-        } else{
-            throw new RuntimeException("The company has already being on the system");
+    public Publishing register(PublishingDto publishingDto){
+        Optional<Publishing> verification = publishingRepository.findByCompany(publishingDto.company());
+        if(verification.isPresent()){
+            throw new AlreadyExistsException("The company has already been registered");
         }
+
+        var publishing = new Publishing();
+        BeanUtils.copyProperties(publishingDto, publishing);
+        publishingRepository.save(publishing);
+        return publishing;
     }
 
     public List<Publishing> getAll(){
         return publishingRepository.findAll();
     }
 
-    public Object getOne(Long id){
+    public Publishing getOne(Long id){
         Optional<Publishing> company = publishingRepository.findById(id);
-
         if (company.isEmpty()){
-            return "Company not found";
+            throw new NotFoundException("Company not found");
         }
-        return company;
+        return company.get();
     }
 
-    public Object update(Long id, PublishingDto publishingDto){
-        Optional<Publishing> company = publishingRepository.findById(id);
-
-        if (company.isEmpty()){
-            return "Company not found";
-        }
-
-        var publishing = company.get();
+    public Publishing update(Long id, PublishingDto publishingDto){
+        var publishing = getOne(id);
         BeanUtils.copyProperties(publishingDto, publishing);
         publishingRepository.save(publishing);
         return publishing;
     }
 
-    public boolean delete(Long id){
-        Optional<Publishing> company = publishingRepository.findById(id);
-
-        if (company.isEmpty()){
-            return false;
-        }
-        publishingRepository.delete(company.get());
-        return true;
+    public String delete(Long id){
+        Publishing company = getOne(id);
+        publishingRepository.delete(company);
+        return "Deleted";
     }
 
+    public Long ifCompanyExists(String company){
+        Optional<Publishing> verification = publishingRepository.findByCompany(company);
+        if(verification.isEmpty()){
+            throw new NotFoundException("Company not found");
+        } else{
+            return verification.get().getId_pub();
+        }
+    }
 }

@@ -1,86 +1,80 @@
 package com.example.books.services;
 
 
+import com.example.books.dtos.BookDto;
 import com.example.books.dtos.BookDtoSave;
+import com.example.books.exceptions.AlreadyExistsException;
+import com.example.books.exceptions.NotFoundException;
 import com.example.books.models.Author;
 import com.example.books.models.Book;
-import com.example.books.repositories.AuthorRepository;
 import com.example.books.repositories.BookRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BookService {
 
     private final BookRepository bookRepository;
-    private final AuthorRepository authorRepository;
+
+    private final AuthorService authorService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, AuthorRepository authorRepository1) {
+    public BookService(BookRepository bookRepository, AuthorService authorService) {
         this.bookRepository = bookRepository;
-        this.authorRepository = authorRepository1;
+        this.authorService = authorService;
     }
 
-    public Object register(BookDtoSave bookDtoSave){
-        Optional<Author> author = authorRepository.findAuthorByName(bookDtoSave.author());
-        if (author.isEmpty()){
-            return "Author not found";
+    public Book register(BookDto bookDto){
+        Optional<Book> verification = bookRepository.findByTitle(bookDto.title());
+        if(verification.isPresent()){
+            throw new AlreadyExistsException("The book has already been registered");
         }
 
-        var book = new Book(bookDtoSave.title(),
-                            author.get().getId_author(),
-                            bookDtoSave.classificacao(),
-                            bookDtoSave.pages(),
-                            bookDtoSave.release(),
-                            bookDtoSave.genre());
+        Author author = authorService.ifAuthorExists(bookDto.author());
+
+        Book book = new Book(bookDto, author.getId_author(), author.getPublishingCompany());
         bookRepository.save(book);
         return book;
     }
 
-    public Object getAll(){
+    public List<Book> getAll(){
         return bookRepository.findAll();
     }
 
-    public Object getById(Long id){
+    public Book getById(Long id){
         Optional<Book> book = bookRepository.findById(id);
 
         if (book.isEmpty()){
-            return "Book not found";
+            throw new NotFoundException("Book not found");
         }
+        return book.get();
+    }
+
+    public Book update(Long id, BookDto bookDto){
+        Book book = getById(id);
+
+        Author author = authorService.ifAuthorExists(bookDto.author());
+
+        BookDtoSave bookDtoSave = new BookDtoSave(
+                bookDto.title(),
+                author.getId_author(),
+                author.getPublishingCompany(),
+                bookDto.ageRange(),
+                bookDto.pages(),
+                bookDto.release(),
+                bookDto.genre());
+        BeanUtils.copyProperties(bookDtoSave, book);
+        bookRepository.save(book);
         return book;
     }
 
-    public Object update(Long id, BookDtoSave bookDtoSave){
-        Optional<Book> book = bookRepository.findById(id);
-
-        if (book.isEmpty()){
-            return "Book not found";
-        }
-
-        Optional<Author> author = authorRepository.findAuthorByName(bookDtoSave.author());
-        if (author.isEmpty()){
-            return "Author not found";
-        }
-
-        var bookModel = new Book(bookDtoSave.title(),
-                author.get().getId_author(),
-                bookDtoSave.classificacao(),
-                bookDtoSave.pages(),
-                bookDtoSave.release(),
-                bookDtoSave.genre());
-        bookRepository.save(bookModel);
-        return bookModel;
-    }
-
-    public Object delete(Long id){
-        Optional<Book> book = bookRepository.findById(id);
-
-        if (book.isEmpty()){
-            return "Book not found";
-        }
-        bookRepository.delete(book.get());
+    public String delete(Long id){
+        Book book = getById(id);
+        bookRepository.delete(book);
         return "Deleted";
     }
 
